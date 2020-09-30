@@ -52,7 +52,7 @@ typedef struct ip_header
 	u_short identification; // Identification
 	u_short flags_fo;		// Flags (3 bits) + Fragment offset (13 bits)
 	u_char	ttl;			// Time to live
-	u_char	proto;			// Protocol
+	u_char	proto;			// Protocol:6-TCP,17-UDP
 	u_short crc;			// Header checksum
 	ip_address	saddr;		// Source address
 	ip_address	daddr;		// Destination address
@@ -69,7 +69,9 @@ typedef struct udp_header
 }udp_header;
 
 /* prototype of the packet handler */
-void packet_handler(u_char *param, const struct pcap_pkthdr *header, const u_char *pkt_data);
+void packet_handler(u_char *param
+	, const struct pcap_pkthdr *header
+	, const u_char *pkt_data);
 
 
 main()
@@ -83,6 +85,7 @@ main()
 	u_int netmask;
 	char packet_filter[] = "ip and udp";
 	struct bpf_program fcode;
+	pcap_dumper_t *dumpfile;
 	
 	/* Retrieve the device list */
 	if(pcap_findalldevs(&alldevs, errbuf) == -1)
@@ -90,7 +93,8 @@ main()
 		fprintf(stderr,"Error in pcap_findalldevs: %s\n", errbuf);
 		exit(1);
 	}
-	
+
+
 	/* Print the list */
 	for(d=alldevs; d; d=d->next)
 	{
@@ -155,37 +159,50 @@ main()
 		netmask=0xffffff; 
 
 
-	//compile the filter
-	if (pcap_compile(adhandle, &fcode, packet_filter, 1, netmask) <0 )
-	{
-		fprintf(stderr,"\nUnable to compile the packet filter. Check the syntax.\n");
-		/* Free the device list */
-		pcap_freealldevs(alldevs);
-		return -1;
-	}
-	
-	//set the filter
-	if (pcap_setfilter(adhandle, &fcode)<0)
-	{
-		fprintf(stderr,"\nError setting the filter.\n");
-		/* Free the device list */
-		pcap_freealldevs(alldevs);
-		return -1;
-	}
+	////compile the filter
+	//if (pcap_compile(adhandle, &fcode, packet_filter, 1, netmask) <0 )
+	//{
+	//	fprintf(stderr,"\nUnable to compile the packet filter. Check the syntax.\n");
+	//	/* Free the device list */
+	//	pcap_freealldevs(alldevs);
+	//	return -1;
+	//}
+	//
+	////set the filter
+	//if (pcap_setfilter(adhandle, &fcode)<0)
+	//{
+	//	fprintf(stderr,"\nError setting the filter.\n");
+	//	/* Free the device list */
+	//	pcap_freealldevs(alldevs);
+	//	return -1;
+	//}
 	
 	printf("\nlistening on %s...\n", d->description);
+
+
+	/* Open the dump file */
+	dumpfile = pcap_dump_open(adhandle, "d:\\temp\\abc.pcap");
+
+	if (dumpfile == NULL)
+	{
+		fprintf(stderr, "\nError opening output file\n");
+		return -1;
+	}
+
 	
 	/* At this point, we don't need any more the device list. Free it */
 	pcap_freealldevs(alldevs);
 	
 	/* start the capture */
-	pcap_loop(adhandle, 0, packet_handler, NULL);
+	pcap_loop(adhandle, 0, packet_handler, (unsigned char *)dumpfile);
 	
 	return 0;
 }
 
 /* Callback function invoked by libpcap for every incoming packet */
-void packet_handler(u_char *param, const struct pcap_pkthdr *header, const u_char *pkt_data)
+void packet_handler(u_char *dumpfile
+	, const struct pcap_pkthdr *header
+	, const u_char *pkt_data)
 {
 	struct tm *ltime;
 	char timestr[16];
@@ -216,7 +233,7 @@ void packet_handler(u_char *param, const struct pcap_pkthdr *header, const u_cha
 	dport = ntohs( uh->dport );
 
 	/* print ip addresses and udp ports */
-	printf("%d.%d.%d.%d.%d -> %d.%d.%d.%d.%d\n",
+	printf("%d.%d.%d.%d.%d -> %d.%d.%d.%d.%d \tProtocal:%d\n",
 		ih->saddr.byte1,
 		ih->saddr.byte2,
 		ih->saddr.byte3,
@@ -226,5 +243,9 @@ void packet_handler(u_char *param, const struct pcap_pkthdr *header, const u_cha
 		ih->daddr.byte2,
 		ih->daddr.byte3,
 		ih->daddr.byte4,
-		dport);
+		dport,
+		ih->proto);
+
+	/* save the packet on the dump file */
+	pcap_dump(dumpfile, header, pkt_data);
 }

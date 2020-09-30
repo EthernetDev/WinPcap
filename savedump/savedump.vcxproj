@@ -55,6 +55,8 @@
     <OutDir>.\Debug\</OutDir>
     <IntDir>.\Debug\</IntDir>
     <LinkIncremental>true</LinkIncremental>
+    <IncludePath>E:\workspace\NetworkDemo\WinPcap-github\Include;$(IncludePath)</IncludePath>
+    <LibraryPath>E:\workspace\NetworkDemo\WinPcap-github\Lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <OutDir>.\Release\</OutDir>
@@ -139,7 +141,9 @@
     <ClInclude Include="..\..\include\pcap.h" />
   </ItemGroup>
   <ItemGroup>
-    <Library Include="..\..\lib\Wpcap.lib" />
+    <Library Include="..\lib\Wpcap.lib">
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</DeploymentContent>
+    </Library>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

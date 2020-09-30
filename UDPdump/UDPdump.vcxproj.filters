@@ -25,6 +25,6 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <Library Include="..\..\lib\Wpcap.lib" />
+    <Library Include="..\lib\Wpcap.lib" />
   </ItemGroup>
 </Project>

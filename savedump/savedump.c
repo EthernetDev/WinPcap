@@ -1,7 +1,9 @@
 #include "pcap.h"
 
 /* prototype of the packet handler */
-void packet_handler(u_char *param, const struct pcap_pkthdr *header, const u_char *pkt_data);
+void packet_handler(u_char *param
+	, const struct pcap_pkthdr *header
+	, const u_char *pkt_data);
 
 main(int argc, char **argv)
 {
@@ -96,7 +98,9 @@ main(int argc, char **argv)
 }
 
 /* Callback function invoked by libpcap for every incoming packet */
-void packet_handler(u_char *dumpfile, const struct pcap_pkthdr *header, const u_char *pkt_data)
+void packet_handler(u_char *dumpfile
+	, const struct pcap_pkthdr *header
+	, const u_char *pkt_data)
 {
 	/* save the packet on the dump file */
 	pcap_dump(dumpfile, header, pkt_data);
